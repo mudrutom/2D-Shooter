@@ -17,8 +17,8 @@ This game has been inspired by a computer game [Crimsonland](http://www.youtube.
 ## Functional requirements
 * starting, re-starting and exiting the game
 * interaction with the game:
-   – moving of the player in the playground (up, down, left and right) using a specified keyboard keys
-   – shooting the players’ weapon by a mouse click on the playground in a desired shooting direction
+ * moving of the player in the playground (up, down, left and right) using a specified keyboard keys
+ * shooting the players’ weapon by a mouse click on the playground in a desired shooting direction
 * generating the waves of enemies that will attack the player, where the numbers and difficulty of enemies will increase over time
 * events in the game will be accompanied by an appropriate sound effects
 * configuration of the game settings
@@ -34,3 +34,13 @@ This game has been inspired by a computer game [Crimsonland](http://www.youtube.
 * displaying of 2D graphics in the HTML5 Canvas environment
 * ability to use the application offline
 * compatibility with modern web browsers
+
+## Implementation notes
+This application is purely client-based with no server-side support. The project aims to demonstrate the
+capabilities of modern web-browsers and the cutting-edge web technologies HTML5, CSS3 and new JavaScript API.
+
+The game environment itself will be implemented using the HTML5 Canvas and by using
+the KineticJS JavaScript library. Other features of the application, such as player management
+and game configuration, will be implemented by basic HTML components with some
+JavaScript support. User data, like high-scores and player information, will be persisted via
+new Web Storage JavaScript API.
