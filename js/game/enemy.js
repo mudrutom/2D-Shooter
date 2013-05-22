@@ -57,7 +57,7 @@ define(function() {
 			image: enemyImg,
 			animation: 'stand',
 			animations: enemyAnimation,
-			frameRate: 4
+			frameRate: 8
 		});
 
 		this.speed = 1;
@@ -83,7 +83,9 @@ define(function() {
 	 */
 	Enemy.prototype.setSpeed = function(speed) {
 		this.speed = speed;
-		this.sprite.setFrameRate(speed * 4);
+		this.sprite.stop();
+		this.sprite.setFrameRate(speed * 8);
+		this.sprite.start();
 	};
 
 	/**

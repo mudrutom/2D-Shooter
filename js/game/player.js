@@ -172,7 +172,9 @@ define(function() {
 	 */
 	Player.prototype.setSpeed = function(speed) {
 		this.speed = speed;
+		this.sprite.stop();
 		this.sprite.setFrameRate(speed * 4);
+		this.sprite.start();
 	};
 
 	/**
