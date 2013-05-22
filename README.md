@@ -1,5 +1,7 @@
 # 2D Shooter
+Published at [http://mudrutom.github.io/2D-Shooter](http://mudrutom.github.io/2D-Shooter) via GitHub Pages.
 
+## Description
 As the name suggests 2D Shooter is a 2D action-shooter game where the player needs to
 survive multiple waves of enemies. At the beginning of the game the player is located in the
 center of a rectangular playground and the waves of enemies are approaching from all edges.
