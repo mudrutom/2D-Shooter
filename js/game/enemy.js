@@ -71,7 +71,7 @@ define(function() {
 
 		this.speed = 1;
 
-		this.enemyLayer = null;
+		this.enemyGroup = null;
 		this.moveAnim = null;
 		this.paused = false;
 
@@ -80,14 +80,14 @@ define(function() {
 
 	/**
 	 * The Enemy initialization.
-	 * @param enemyLayer KineticJS Layer
+	 * @param enemyGroup KineticJS Group
 	 */
-	Enemy.prototype.init = function(enemyLayer) {
+	Enemy.prototype.init = function(enemyGroup) {
 		// app enemy to the layer
-		enemyLayer.add(this.sprite);
-		enemyLayer.add(this.circle);
+		enemyGroup.add(this.sprite);
+		enemyGroup.add(this.circle);
 		this.sprite.start();
-		this.enemyLayer = enemyLayer;
+		this.enemyGroup = enemyGroup;
 
 		// add damage animation tween
 		this.tween = new Kinetic.Tween({
