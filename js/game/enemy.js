@@ -59,12 +59,23 @@ define(function() {
 			animations: enemyAnimation,
 			frameRate: 8
 		});
+		this.circle = new Kinetic.Circle({
+			x: 0,
+			y: 0,
+			offset: [0,25],
+			radius: 12,
+			fill: 'red',
+			opacity: 0.0
+		});
+		this.tween = null;
 
 		this.speed = 1;
 
 		this.enemyLayer = null;
 		this.moveAnim = null;
 		this.paused = false;
+
+		this.attackCallback = null;
 	}
 
 	/**
@@ -74,8 +85,20 @@ define(function() {
 	Enemy.prototype.init = function(enemyLayer) {
 		// app enemy to the layer
 		enemyLayer.add(this.sprite);
+		enemyLayer.add(this.circle);
 		this.sprite.start();
 		this.enemyLayer = enemyLayer;
+
+		// add damage animation tween
+		this.tween = new Kinetic.Tween({
+			node: this.circle,
+			opacity: 0.5,
+			duration: 0.5,
+			easing: Kinetic.Easings.StrongEaseOut,
+			onFinish: function() {
+				this.reverse();
+			}
+		});
 	};
 
 	/**
@@ -113,7 +136,24 @@ define(function() {
 	 */
 	Enemy.prototype.setPosition = function(position) {
 		this.sprite.setX(position.x);
+		this.circle.setX(position.x);
 		this.sprite.setY(position.y);
+		this.circle.setY(position.y);
+	};
+
+	/**
+	 * Returns position of the enemy.
+	 * @returns {{x: *, y: *}} X Y coordinates
+	 */
+	Enemy.prototype.getPosition = function() {
+		return { x: this.sprite.getX(), y: this.sprite.getY() };
+	};
+
+	/**
+	 * Starts 'damage' animation.
+	 */
+	Enemy.prototype.showDamage = function() {
+		this.tween.play();
 	};
 
 	/**
@@ -123,6 +163,7 @@ define(function() {
 	Enemy.prototype.goTo = function(target) {
 		var self = this;
 		var enemy = this.sprite;
+		var circ = this.circle;
 		var x = target.x;
 		var y = target.y;
 
@@ -147,31 +188,45 @@ define(function() {
 		// rotate towards the target
 		var angle = Math.atan((y - enemy.getY()) / (x - enemy.getX()));
 		enemy.setRotation(angle);
+		circ.setRotation(angle);
 		if (x >= enemy.getX()) {
 			enemy.rotateDeg(-90);
+			circ.rotateDeg(-90);
 		} else {
 			enemy.rotateDeg(90);
+			circ.rotateDeg(90);
 		}
 
 		// start moving, then attack when target is reached
 		var speed = (function() { return this.speed; }).bind(this);
 		this.moveAnim = new Kinetic.Animation(function() {
-			var move = speed();
+			var dx, dy, move = speed();
 			if (x < enemy.getX()) {
-				enemy.move(Math.max(-move, x - enemy.getX()), 0);
+				dx = Math.max(-move, x - enemy.getX());
+				enemy.move(dx, 0);
+				circ.move(dx, 0);
 			}
 			if (enemy.getX() < x) {
-				enemy.move(Math.min(move, x - enemy.getX()), 0);
+				dx = Math.min(move, x - enemy.getX());
+				enemy.move(dx, 0);
+				circ.move(dx, 0);
 			}
 			if (y < enemy.getY()) {
-				enemy.move(0, Math.max(-move, y - enemy.getY()));
+				dy = Math.max(-move, y - enemy.getY());
+				enemy.move(0, dy);
+				circ.move(0, dy);
 			}
 			if (enemy.getY() < y) {
-				enemy.move(0, Math.min(move, y - enemy.getY()));
+				dy = Math.min(move, y - enemy.getY());
+				enemy.move(0, dy);
+				circ.move(0, dy);
 			}
 			if (x == enemy.getX() && y == enemy.getY()) {
 				enemy.setAnimation('attack');
 				self.moveAnim.stop();
+				if (self.attackCallback) {
+					self.attackCallback(x, y);
+				}
 			}
 		}, this.enemyLayer);
 		this.moveAnim.start();

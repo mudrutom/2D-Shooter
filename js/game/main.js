@@ -58,6 +58,31 @@ require(["player","enemy"], function(player, Enemy) {
 
 	player.shootCallback = function(points) {
 		shoot.setPoints(points);
+
+		var x = points[2], y = points[3];
+		var p = player.getPosition();
+		var e1 = enemy1.getPosition();
+		var e2 = enemy2.getPosition();
+
+		var angle = Math.atan((y - p.y) / (x - p.x));
+		if (x >= p.x) {
+			angle = -angle;
+		}
+		var a1 = Math.atan((e1.y - p.y) / (e1.x - p.x));
+		if (e1.x >= p.x) {
+			a1 = -a1;
+		}
+		var a2 = Math.atan((e2.y - p.y) / (e2.x - p.x));
+		if (e2.x >= p.x) {
+			a2 = -a2;
+		}
+
+		if (angle - 0.05 < a1 && a1 < angle + 0.05) {
+			enemy1.showDamage();
+		}
+		if (angle - 0.05 < a2 && a2 < angle + 0.05) {
+			enemy2.showDamage();
+		}
 	};
 	player.init(layer, foreground, playground);
 
@@ -73,12 +98,21 @@ require(["player","enemy"], function(player, Enemy) {
 	setInterval(function() {
 		enemy2.goTo(player.getPosition());
 	}, 2500);
+	var attackCallback = function(x, y) {
+		var p = player.getPosition();
+		if (x - 0.1 < p.x && p.x < x + 0.1 && y - 0.1 < p.y && p.y < y + 0.1) {
+			player.showDamage();
+		}
+	};
+	enemy1.attackCallback = attackCallback;
+	enemy2.attackCallback = attackCallback;
 
 	layer.add(shoot);
 	layer.add(foreground);
 
 	$('#the-navbar').find('a').on('click', function(event) {
 		event.preventDefault();
+		playground.focus();
 	});
 
 	$('#game-play').on('click', function() {
@@ -92,6 +126,9 @@ require(["player","enemy"], function(player, Enemy) {
 		enemy2.stop();
 	});
 
+	$('#settings').on('hide', function() {
+		playground.focus();
+	});
 	$('#settings-save').on('click', function() {
 		var playerSpeed = $('#player-speed').val();
 		player.setSpeed(playerSpeed);

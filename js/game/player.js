@@ -53,10 +53,20 @@ define(function() {
 			animations: playerAnimation,
 			frameRate: 12
 		});
+		this.circle = new Kinetic.Circle({
+			x: 0,
+			y: 0,
+			offset: [-10,35],
+			radius: 15,
+			fill: 'red',
+			opacity: 0.0
+		});
+		this.tween = null;
 
 		this.speed = 3;
 
 		this.moveAnim = null;
+
 		this.shootCallback = null;
 	}
 
@@ -68,6 +78,7 @@ define(function() {
 	 */
 	Player.prototype.init = function(playerLayer, foreground, playground) {
 		var player = this.sprite;
+		var circ = this.circle;
 		var shootCallback = this.shootCallback;
 		var width = function() { return playerLayer.getWidth(); };
 		var height = function() { return playerLayer.getHeight() };
@@ -75,9 +86,23 @@ define(function() {
 		// move player to the center
 		player.setX(width()/2);
 		player.setY(height()/2);
+		circ.setX(width()/2);
+		circ.setY(height()/2);
 
 		// add player to the layer
 		playerLayer.add(player);
+		playerLayer.add(circ);
+
+		// add damage animation tween
+		this.tween = new Kinetic.Tween({
+			node: circ,
+			opacity: 0.5,
+			duration: 0.5,
+			easing: Kinetic.Easings.StrongEaseOut,
+			onFinish: function() {
+				this.reverse();
+			}
+		});
 
 		// bind mouse-move to rotate the player
 		foreground.on('mousemove', function(event) {
@@ -85,10 +110,13 @@ define(function() {
 			var y = event.layerY || event.y;
 			var angle = Math.atan((y - player.getY()) / (x - player.getX()));
 			player.setRotation(angle);
+			circ.setRotation(angle);
 			if (x >= player.getX()) {
 				player.rotateDeg(-90);
+				circ.rotateDeg(-90);
 			} else {
 				player.rotateDeg(90);
+				circ.rotateDeg(90);
 			}
 		});
 
@@ -150,18 +178,26 @@ define(function() {
 		});
 		this.moveAnim = new Kinetic.Animation(function() {
 			// moving the Player
-			var move = speed();
+			var dx, dy, move = speed();
 			if (moving['up'] && 0 < player.getY()) {
-				player.move(0, Math.max(-move, -player.getY()));
+				dy = Math.max(-move, -player.getY());
+				player.move(0, dy);
+				circ.move(0, dy);
 			}
 			if (moving['down'] && player.getY() < height()) {
-				player.move(0, Math.min(move,  height() - player.getY()));
+				dy = Math.min(move, height() - player.getY());
+				player.move(0, dy);
+				circ.move(0, dy);
 			}
 			if (moving['left'] && 0 < player.getX()) {
-				player.move(Math.max(-move, -player.getX()), 0);
+				dx = Math.max(-move, -player.getX());
+				player.move(dx, 0);
+				circ.move(dx, 0);
 			}
 			if (moving['right'] && player.getX() < width()) {
-				player.move(Math.min(move,  width() - player.getX()), 0);
+				dx = Math.min(move, width() - player.getX());
+				player.move(dx, 0);
+				circ.move(dx, 0);
 			}
 		}, playerLayer);
 		this.moveAnim.start();
@@ -200,6 +236,13 @@ define(function() {
 	 */
 	Player.prototype.getPosition = function() {
 		return { x: this.sprite.getX(), y: this.sprite.getY() };
+	};
+
+	/**
+	 * Starts 'damage' animation.
+	 */
+	Player.prototype.showDamage = function() {
+		this.tween.play();
 	};
 
 	return new Player();
