@@ -13,16 +13,59 @@
 
 	<link rel="stylesheet" href="css/normalize.css"/>
 	<link rel="stylesheet" href="css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/bootstrap-responsive.min.css">
-	<link rel="stylesheet" href="css/main.css"/>
+	<link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
-<label for="player-speed">Player speed</label><input id="player-speed" type="number" value="3"/>
-<label for="enemy-speed">Enemy speed</label><input id="enemy-speed" type="number" value="1"/>
+<div id="the-navbar" class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<a class="brand" href="#">2D Shooter</a>
+			<ul class="nav">
+				<li class="divider-vertical"></li>
+				<li class="active"><a href="#playground">Game</a></li>
+				<li><a href="#settings" data-toggle="modal">Settings</a></li>
+			</ul>
+			<ul class="nav pull-right">
+				<li class="divider-vertical"></li>
+				<li><a id="game-play" href="#"><i class="icon-play icon-white"></i> Play</a></li>
+				<li><a id="game-pause" href="#"><i class="icon-pause icon-white"></i> Pause</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
 
-<div id="playground" style="margin: 40px 100px;"></div>
+<div id="playground"></div>
 
+<div id="settings" class="modal hide fade" tabindex="-1" role="dialog">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h3>Game settings</h3>
+	</div>
+	<div class="modal-body">
+		<h4>Adjust speeds:</h4>
+		<div class="form-horizontal">
+			<div class="control-group">
+				<label class="control-label" for="player-speed">Player speed</label>
+				<div class="controls">
+					<input id="player-speed" type="number" value="3"/>
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="enemy-speed">Enemy speed</label>
+				<div class="controls">
+					<input id="enemy-speed" type="number" value="1"/>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal">Close</button>
+		<button id="settings-save" class="btn btn-primary">Save</button>
+	</div>
+</div>
+
+<!-- load main JavaScript using Require.js -->
 <script data-main="js/game/main.js" src="js/require-2.1.6.min.js" type="text/javascript"></script>
 
 </body>

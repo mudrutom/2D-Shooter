@@ -64,6 +64,7 @@ define(function() {
 
 		this.enemyLayer = null;
 		this.moveAnim = null;
+		this.paused = false;
 	}
 
 	/**
@@ -75,6 +76,24 @@ define(function() {
 		enemyLayer.add(this.sprite);
 		this.sprite.start();
 		this.enemyLayer = enemyLayer;
+	};
+
+	/**
+	 * Starts the enemies' animation.
+	 */
+	Enemy.prototype.start = function() {
+		this.paused = false;
+		this.sprite.start();
+		this.moveAnim.start();
+	};
+
+	/**
+	 * Stops the enemies' animation.
+	 */
+	Enemy.prototype.stop = function() {
+		this.paused = true;
+		this.sprite.stop();
+		this.moveAnim.stop();
 	};
 
 	/**
@@ -110,6 +129,11 @@ define(function() {
 		// already at the target
 		if (x == enemy.getX() && y == enemy.getY()) {
 			enemy.setAnimation('attack');
+			return;
+		}
+
+		// do nothing if the game is paused
+		if (this.paused) {
 			return;
 		}
 

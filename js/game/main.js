@@ -8,6 +8,9 @@ require.config({
 });
 
 require(["player","enemy"], function(player, Enemy) {
+	var W = $(window);
+	var getWidth = function() { return W.width() - 10; };
+	var getHeight = function() { return W.height() - 51; };
 
 	var playground = $('#playground');
 	playground.attr('tabIndex', 0);
@@ -15,8 +18,8 @@ require(["player","enemy"], function(player, Enemy) {
 
 	var stage = new Kinetic.Stage({
 		container: 'playground',
-		width: 1400,
-		height: 800
+		width: getWidth(),
+		height: getHeight()
 	});
 
 	var layer = new Kinetic.Layer({
@@ -74,16 +77,43 @@ require(["player","enemy"], function(player, Enemy) {
 	layer.add(shoot);
 	layer.add(foreground);
 
-	var animation = new Kinetic.Animation();
-	animation.node = layer;
-	animation.start();
-
-	$('#player-speed').on('change', function() {
-		player.setSpeed($(this).val());
+	$('#the-navbar').find('a').on('click', function(event) {
+		event.preventDefault();
 	});
-	$('#enemy-speed').on('change', function() {
-		enemy1.setSpeed($(this).val());
-		enemy2.setSpeed($(this).val());
+
+	$('#game-play').on('click', function() {
+		player.start();
+		enemy1.start();
+		enemy2.start();
+	});
+	$('#game-pause').on('click', function() {
+		player.stop();
+		enemy1.stop();
+		enemy2.stop();
+	});
+
+	$('#settings-save').on('click', function() {
+		var playerSpeed = $('#player-speed').val();
+		player.setSpeed(playerSpeed);
+		var enemySpeed = $('#enemy-speed').val();
+		enemy1.setSpeed(enemySpeed);
+		enemy2.setSpeed(enemySpeed);
+
+		$('#settings').modal('hide');
+	});
+
+	W.resize(function() {
+		var w = getWidth();
+		var h = getHeight();
+
+		stage.setWidth(w);
+		stage.setHeight(h);
+		layer.setWidth(w);
+		layer.setHeight(h);
+		background.setWidth(w);
+		background.setHeight(h);
+		foreground.setWidth(w);
+		foreground.setHeight(h);
 	});
 
 });

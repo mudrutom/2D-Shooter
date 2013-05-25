@@ -56,6 +56,7 @@ define(function() {
 
 		this.speed = 3;
 
+		this.moveAnim = null;
 		this.shootCallback = null;
 	}
 
@@ -68,12 +69,12 @@ define(function() {
 	Player.prototype.init = function(playerLayer, foreground, playground) {
 		var player = this.sprite;
 		var shootCallback = this.shootCallback;
-		var width = playerLayer.getWidth();
-		var height = playerLayer.getHeight();
+		var width = function() { return playerLayer.getWidth(); };
+		var height = function() { return playerLayer.getHeight() };
 
 		// move player to the center
-		player.setX(width/2);
-		player.setY(height/2);
+		player.setX(width()/2);
+		player.setY(height()/2);
 
 		// add player to the layer
 		playerLayer.add(player);
@@ -147,23 +148,39 @@ define(function() {
 				player.setAnimation('stand');
 			}
 		});
-		var moveAnim = new Kinetic.Animation(function() {
+		this.moveAnim = new Kinetic.Animation(function() {
 			// moving the Player
 			var move = speed();
 			if (moving['up'] && 0 < player.getY()) {
 				player.move(0, Math.max(-move, -player.getY()));
 			}
-			if (moving['down'] && player.getY() < height) {
-				player.move(0, Math.min(move,  height - player.getY()));
+			if (moving['down'] && player.getY() < height()) {
+				player.move(0, Math.min(move,  height() - player.getY()));
 			}
 			if (moving['left'] && 0 < player.getX()) {
 				player.move(Math.max(-move, -player.getX()), 0);
 			}
-			if (moving['right'] && player.getX() < width) {
-				player.move(Math.min(move,  width - player.getX()), 0);
+			if (moving['right'] && player.getX() < width()) {
+				player.move(Math.min(move,  width() - player.getX()), 0);
 			}
 		}, playerLayer);
-		moveAnim.start();
+		this.moveAnim.start();
+	};
+
+	/**
+	 * Starts the PLayers' animation.
+	 */
+	Player.prototype.start = function() {
+		this.sprite.start();
+		this.moveAnim.start();
+	};
+
+	/**
+	 * Stops the Players' animation.
+	 */
+	Player.prototype.stop = function() {
+		this.sprite.stop();
+		this.moveAnim.stop();
 	};
 
 	/**
