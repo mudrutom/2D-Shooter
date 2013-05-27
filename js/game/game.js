@@ -112,7 +112,7 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 				player.showDamage();
 			}
 		};
-		this.enemyFactory.init(this.enemyGroup, attackCallback);
+		this.enemyFactory.init(this.mainLayer, this.enemyGroup, attackCallback);
 
 		// bind second layer
 		this.mainLayer.add(this.enemyGroup);
@@ -128,10 +128,11 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 		var player = this.player;
 		for (var i = 0; i < number; i++) {
 			var enemy = enemyFactory.newEnemy();
+			enemy.id = this.enemies.length;
 			this.enemies.push(enemy);
 			setInterval((function() {
 				this.goTo(player.getPosition());
-			}).bind(enemy), 1000);
+			}).bind(enemy), Math.random() * 800 + 200);
 		}
 	};
 

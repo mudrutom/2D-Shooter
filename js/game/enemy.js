@@ -53,7 +53,7 @@ define(function() {
 		this.sprite = new Kinetic.Sprite({
 			x: 0,
 			y: 0,
-			offset: [50,70],
+			offset: [50,60],
 			image: enemyImg,
 			animation: 'stand',
 			animations: enemyAnimation,
@@ -62,31 +62,37 @@ define(function() {
 		this.circle = new Kinetic.Circle({
 			x: 0,
 			y: 0,
-			offset: [0,25],
+			offset: [0,15],
 			radius: 12,
 			fill: 'red',
 			opacity: 0.0
 		});
 		this.tween = null;
 
-		this.speed = 1;
+		this.id = null;
 
+		this.speed = 2;
+
+		this.enemyLayer = null;
 		this.enemyGroup = null;
 		this.moveAnim = null;
 		this.paused = false;
 
 		this.attackCallback = null;
+		this.attackIntId = null;
 	}
 
 	/**
 	 * The Enemy initialization.
+	 * @param enemyLayer KineticJS Layer
 	 * @param enemyGroup KineticJS Group
 	 */
-	Enemy.prototype.init = function(enemyGroup) {
+	Enemy.prototype.init = function(enemyLayer, enemyGroup) {
 		// app enemy to the layer
 		enemyGroup.add(this.sprite);
 		enemyGroup.add(this.circle);
 		this.sprite.start();
+		this.enemyLayer = enemyLayer;
 		this.enemyGroup = enemyGroup;
 
 		// add damage animation tween
@@ -126,7 +132,7 @@ define(function() {
 	Enemy.prototype.setSpeed = function(speed) {
 		this.speed = speed;
 		this.sprite.stop();
-		this.sprite.setFrameRate(speed * 8);
+		this.sprite.setFrameRate(speed * 4);
 		this.sprite.start();
 	};
 
@@ -169,7 +175,9 @@ define(function() {
 
 		// already at the target
 		if (x == enemy.getX() && y == enemy.getY()) {
-			enemy.setAnimation('attack');
+			if (enemy.getAnimation() != 'attack') {
+				enemy.setAnimation('attack');
+			}
 			return;
 		}
 
@@ -183,6 +191,10 @@ define(function() {
 		}
 		if (enemy.getAnimation() != 'walk') {
 			enemy.setAnimation('walk');
+		}
+		if (this.attackIntId != null) {
+			clearInterval(this.attackIntId);
+			this.attackIntId = null;
 		}
 
 		// rotate towards the target
@@ -225,7 +237,15 @@ define(function() {
 				enemy.setAnimation('attack');
 				self.moveAnim.stop();
 				if (self.attackCallback) {
-					self.attackCallback(x, y);
+					// attack in intervals based on speed
+					var time = 200 + 2000 / speed();
+					var attack = function() {
+						if (!self.paused) {
+							self.attackCallback(x, y);
+						}
+					};
+					self.attackIntId = setInterval(attack, time);
+					attack();
 				}
 			}
 		}, this.enemyLayer);

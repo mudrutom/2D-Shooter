@@ -47,7 +47,7 @@ define(function() {
 		this.sprite = new Kinetic.Sprite({
 			x: 0,
 			y: 0,
-			offset: [50,70],
+			offset: [50,50],
 			image: img,
 			animation: 'stand',
 			animations: playerAnimation,
@@ -56,14 +56,14 @@ define(function() {
 		this.circle = new Kinetic.Circle({
 			x: 0,
 			y: 0,
-			offset: [-10,35],
+			offset: [-10,15],
 			radius: 15,
 			fill: 'red',
 			opacity: 0.0
 		});
 		this.tween = null;
 
-		this.speed = 3;
+		this.speed = 4;
 
 		this.moveAnim = null;
 
@@ -106,8 +106,8 @@ define(function() {
 
 		// bind mouse-move to rotate the player
 		foreground.on('mousemove', function(event) {
-			var x = event.layerX || event.x;
-			var y = event.layerY || event.y;
+			var x = event.layerX || event.x || event.clientX;
+			var y = event.layerY || event.y || event.clientY;
 			var angle = Math.atan((y - player.getY()) / (x - player.getX()));
 			player.setRotation(angle);
 			circ.setRotation(angle);
@@ -122,8 +122,8 @@ define(function() {
 
 		// bind mouse-click to shooting
 		foreground.on('click', function(event) {
-			var x = event.layerX || event.x;
-			var y = event.layerY || event.y;
+			var x = event.layerX || event.x || event.clientX;
+			var y = event.layerY || event.y || event.clientY;
 			if (shootCallback) {
 				var points = [ player.getX(), player.getY(), x, y ];
 				shootCallback(points);
@@ -226,7 +226,7 @@ define(function() {
 	Player.prototype.setSpeed = function(speed) {
 		this.speed = speed;
 		this.sprite.stop();
-		this.sprite.setFrameRate(speed * 4);
+		this.sprite.setFrameRate(speed * 3);
 		this.sprite.start();
 	};
 
