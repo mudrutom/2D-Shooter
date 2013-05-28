@@ -4,7 +4,7 @@
  * Author: Tomas Mudrunka
  */
 
-define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) {
+define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerator) {
 	// background image pattern
 	var bgImg = new Image();
 	bgImg.src = 'img/game/bg-texture.jpg';
@@ -47,9 +47,11 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		this.text = new Kinetic.Text({
 			x: 10,
 			y: 10,
-			text: 'Health: 20',
+			text: 'Player HP: 50',
 			fontSize: 30,
-			fill: 'green'
+			fontStyle: 'bold',
+			fill: '#357735',
+			shadowColor: 'gray'
 		});
 
 		this.playerGroup = new Kinetic.Group();
@@ -60,10 +62,9 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		this.shoot = new Shoot();
 
 		this.enemyGroup = new Kinetic.Group();
-		this.enemyFactory = new EnemyFactory();
-		this.enemies = [];
-		this.enemiesHP = [];
-		this.enemyIntIds = [];
+		this.enemyGenerator = new EnemyGenerator();
+
+		this.difficulty = 1;
 
 		this.gameOverCallback = null;
 	}
@@ -75,6 +76,7 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		var self = this;
 		var player = this.player;
 		var shoot = this.shoot;
+		var generator = this.enemyGenerator;
 
 		// bind all layers
 		this.firstLayer.add(this.background);
@@ -91,10 +93,9 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		player.shootCallback = function(points) {
 			shoot.renderShoot(points);
 
-			var enemies = self.enemies;
+			var enemies = generator.getEnemies();
 
-			var x = points[2];
-			var y = points[3];
+			var x = points[2], y = points[3];
 			var p = player.getPosition();
 
 			var angle = Math.atan((y - p.y) / (x - p.x));
@@ -105,55 +106,34 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 			// iterate over all enemies
 			for (var i = 0; i < enemies.length; i++) {
 				var e = enemies[i].getPosition();
-
 				var a = Math.atan((e.y - p.y) / (e.x - p.x));
 				if (e.x >= p.x) {
 					a = -a;
 				}
-
 				if (angle - E1 < a && a < angle + E1) {
-					enemies[i].showDamage();
-					self.enemiesHP[i]--;
-					if (self.enemiesHP[i] < 1) {
-						// enemy is dead
-						clearInterval(self.enemyIntIds[i]);
-						enemies[i].showDeath();
-						setTimeout((function() {
-							this.destroy();
-						}).bind(enemies[i]), 3000);
-						enemies.splice(i, 1);
-						self.enemiesHP.splice(i, 1);
-						self.enemyIntIds.splice(i, 1);
-					}
+					generator.handleEnemyHit(i);
 				}
-			}
-
-			if (enemies.length < 1) {
-				self.addEnemies(10);
 			}
 		};
 		player.init(this.mainLayer, this.playerGroup, this.foreground, this.playground);
 
 		shoot.init(this.shootGroup, this.foreground);
 
-		// create callback for enemy attack
+		// create callbacks for enemy generator
 		var attackCallback = function(x, y) {
 			var p = player.getPosition();
-			if (x - E2 < p.x && p.x < x + E2 && y - E2 < p.y && p.y < y + E2 && self.playerHP > 0) {
+			if (x - E2 < p.x && p.x < x + E2 && y - E2 < p.y && p.y < y + E2) {
 				player.showDamage();
-				self.playerHP--;
-				if (self.playerHP < 1) {
-					player.gameOver();
-					if (self.gameOverCallback) {
-						setTimeout(function() {
-							self.gameOverCallback();
-						}, 3000);
-					}
+				if (--self.playerHP == 0) {
+					self.endGame();
 				}
-				self.text.setText('Health: ' + self.playerHP);
+				self.text.setText('Player HP: ' + self.playerHP);
 			}
 		};
-		this.enemyFactory.init(this.mainLayer, this.enemyGroup, this.foreground, attackCallback);
+		var goToCallback = function() {
+			this.goTo(player.getPosition());
+		};
+		generator.init(this.mainLayer, this.enemyGroup, this.foreground, attackCallback, goToCallback);
 
 		// add layers to the stage
 		this.stage.add(this.firstLayer);
@@ -162,21 +142,78 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 	};
 
 	/**
-	 * Adds given number of enemies into the game.
-	 * @param number
+	 * Begins new game (also re-start).
 	 */
-	Game.prototype.addEnemies = function(number) {
-		var player = this.player;
-		for (var i = 0; i < number; i++) {
-			var enemy = this.enemyFactory.newEnemy();
-			enemy.id = this.enemies.length;
-			var intId = setInterval((function() {
-				this.goTo(player.getPosition());
-			}).bind(enemy), Math.random() * 800 + 200);
-			this.enemies.push(enemy);
-			this.enemiesHP.push(10);
-			this.enemyIntIds.push(intId);
+	Game.prototype.beginNewGame = function() {
+		// clean-up before start
+		this.text.setText('Player HP: 50');
+		this.enemyGenerator.clean();
+		this.enemyGenerator.setDifficulty(this.difficulty);
+
+		// start new game
+		this.playerHP = 50;
+		this.player.gameBegin();
+		this.enemyGenerator.start();
+
+		this.foreground.setOpacity(0.0);
+		this.lastLayer.draw();
+	};
+
+	/**
+	 * Ends current game, terminates the Player.
+	 */
+	Game.prototype.endGame = function() {
+		this.player.gameOver();
+		if (this.gameOverCallback) {
+			var self = this;
+			var result = {
+				speed: this.player.speed,
+				difficulty: this.enemyGenerator.difficulty,
+				kills: this.enemyGenerator.killCount
+			};
+			setTimeout(function() {
+				self.pause();
+				self.gameOverCallback(result);
+			}, 3000);
 		}
+	};
+
+	/**
+	 * Will play/resume the game.
+	 */
+	Game.prototype.play = function() {
+		this.player.start();
+		this.enemyGenerator.start();
+
+		this.foreground.setOpacity(0.0);
+		this.lastLayer.draw();
+	};
+
+	/**
+	 * Will pause the game.
+	 */
+	Game.prototype.pause = function() {
+		this.player.stop();
+		this.enemyGenerator.stop();
+
+		this.foreground.setOpacity(0.5);
+		this.lastLayer.draw();
+	};
+
+	/**
+	 * Sets moving speed of the Player.
+	 * @param speed number
+	 */
+	Game.prototype.setPlayerSpeed = function(speed) {
+		this.player.setSpeed(speed);
+	};
+
+	/**
+	 * Sets initial difficulty of enemies.
+	 * @param difficulty number > 0
+	 */
+	Game.prototype.setDifficulty = function(difficulty) {
+		this.difficulty = difficulty
 	};
 
 	/**
@@ -192,70 +229,6 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
 		this.stage.draw();
-	};
-
-	/**
-	 * Begins new game.
-	 */
-	Game.prototype.beginNewGame = function() {
-		// clean-up before start
-		for (var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].destroy();
-			clearInterval(this.enemyIntIds[i]);
-		}
-		this.enemies = [];
-		this.enemiesHP = [];
-		this.enemyIntIds = [];
-
-		// start new game
-		this.playerHP = 20;
-		this.player.gameBegin();
-		this.addEnemies(10);
-
-		this.foreground.setOpacity(0.0);
-		this.lastLayer.draw();
-	};
-
-	/**
-	 * Will play/resume the game.
-	 */
-	Game.prototype.play = function() {
-		this.player.start();
-		for (var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].start();
-		}
-		this.foreground.setOpacity(0.0);
-		this.lastLayer.draw();
-	};
-
-	/**
-	 * Will pause the game.
-	 */
-	Game.prototype.pause = function() {
-		this.player.stop();
-		for (var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].stop();
-		}
-		this.foreground.setOpacity(0.5);
-		this.lastLayer.draw();
-	};
-
-	/**
-	 * Sets moving speed of the Player.
-	 * @param speed number
-	 */
-	Game.prototype.setPlayerSpeed = function(speed) {
-		this.player.setSpeed(speed);
-	};
-
-	/**
-	 * Sets moving speed of enemies.
-	 * @param speed number
-	 */
-	Game.prototype.setEnemySpeed = function(speed) {
-		for (var i = 0; i < this.enemies.length; i++) {
-			this.enemies[i].setSpeed(speed);
-		}
 	};
 
 	return Game;

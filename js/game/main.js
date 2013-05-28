@@ -12,9 +12,8 @@ require(["game"], function(Game) {
 	game.init();
 	game.playground.attr('tabIndex', 0);
 	game.playground.focus();
-	game.gameOverCallback = function() {
-		game.pause();
-		$('#dialog-message').text("GAME OVER: You've died!");
+	game.gameOverCallback = function(result) {
+		$('#dialog-message').text("GAME OVER: You've killed " + result.kills + " enemies!");
 		$('#dialog').modal('show');
 	};
 
@@ -43,11 +42,11 @@ require(["game"], function(Game) {
 	$('#dialog, #settings').on('hidden', function() {
 		game.playground.focus();
 	});
-	$('#settings-save').on('click', function() {
+	$('#settings-save').on('click', function() { // TODO validate integer values /^\d+$/
 		var playerSpeed = $('#player-speed').val();
 		game.setPlayerSpeed(playerSpeed);
-		var enemySpeed = $('#enemy-speed').val();
-		game.setEnemySpeed(enemySpeed);
+		var difficulty = $('#difficulty').val();
+		game.setDifficulty(difficulty);
 	});
 
 	$('#dialog').modal('show');
