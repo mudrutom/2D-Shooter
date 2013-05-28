@@ -7,7 +7,8 @@ require.config({
 	baseUrl: "js/game"
 });
 
-require(["game"], function(game) {
+require(["game"], function(Game) {
+	var game = new Game();
 	game.init();
 	game.addEnemies(2);
 	game.playground.attr('tabIndex', 0);

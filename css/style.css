@@ -1,5 +1,10 @@
 /* Main CSS stylesheet. */
 
+#the-navbar .brand {
+	margin-left: 10px;
+}
+
 #playground {
 	margin: 46px 5px 0;
+	cursor: crosshair;
 }

@@ -73,15 +73,16 @@ define(function() {
 	/**
 	 * The Player initialization.
 	 * @param playerLayer KineticJS Layer
+	 * @param playerGroup KineticJS Group
 	 * @param foreground object used for binding mouse-events
 	 * @param playground object used for binding key-events
 	 */
-	Player.prototype.init = function(playerLayer, foreground, playground) {
+	Player.prototype.init = function(playerLayer, playerGroup, foreground, playground) {
 		var player = this.sprite;
 		var circ = this.circle;
 		var shootCallback = this.shootCallback;
-		var width = function() { return playerLayer.getWidth(); };
-		var height = function() { return playerLayer.getHeight() };
+		var width = function() { return foreground.getWidth(); };
+		var height = function() { return foreground.getHeight(); };
 
 		// move player to the center
 		player.setX(width()/2);
@@ -90,8 +91,8 @@ define(function() {
 		circ.setY(height()/2);
 
 		// add player to the layer
-		playerLayer.add(player);
-		playerLayer.add(circ);
+		playerGroup.add(player);
+		playerGroup.add(circ);
 
 		// add damage animation tween
 		this.tween = new Kinetic.Tween({
@@ -245,5 +246,5 @@ define(function() {
 		this.tween.play();
 	};
 
-	return new Player();
+	return Player;
 });

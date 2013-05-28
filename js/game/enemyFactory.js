@@ -41,5 +41,5 @@ define(["enemy"], function(Enemy) {
 		return enemy;
 	};
 
-	return new EnemyFactory();
+	return EnemyFactory;
 });

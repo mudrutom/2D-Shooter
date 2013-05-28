@@ -4,7 +4,7 @@
  * Author: Tomas Mudrunka
  */
 
-define(["player","enemyFactory"], function(player, enemyFactory) {
+define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) {
 	// background image pattern
 	var bgImg = new Image();
 	bgImg.src = 'img/game/bg-texture.jpg';
@@ -38,27 +38,27 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 			height: height
 		});
 
-		this.mainLayer = new Kinetic.Layer({
-			width: width,
-			height: height
-		});
-		this.enemyGroup = new Kinetic.Group({
-			x: 0,
-			y: 0,
-			width: width,
-			height: height
+		this.firstLayer = new Kinetic.Layer();
+		this.mainLayer = new Kinetic.Layer();
+		this.lastLayer = new Kinetic.Layer();
+
+		this.text = new Kinetic.Text({
+			x: 10,
+			y: 10,
+			text: 'Health: 100',
+			fontSize: 30,
+			fill: 'green'
 		});
 
-		this.enemyFactory = enemyFactory;
+		this.playerGroup = new Kinetic.Group();
+		this.player = new Player();
 
-		this.player = player;
+		this.shootGroup = new Kinetic.Group();
+		this.shoot = new Shoot();
+
+		this.enemyGroup = new Kinetic.Group();
+		this.enemyFactory = new EnemyFactory();
 		this.enemies = [];
-
-		this.shoot = new Kinetic.Line({
-			points: [0, 0],
-			stroke: 'black',
-			strokeWidth: 2
-		});
 	}
 
 	/**
@@ -66,19 +66,23 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 	 */
 	Game.prototype.init = function() {
 		var player = this.player;
-		var enemies = this.enemies;
 		var shoot = this.shoot;
+		var enemies = this.enemies;
 
-		// first layer
-		this.stage.add(this.mainLayer);
-		this.mainLayer.add(this.background);
+		// bind all layers
+		this.firstLayer.add(this.background);
+		this.mainLayer.add(this.shootGroup);
+		this.mainLayer.add(this.playerGroup);
+		this.mainLayer.add(this.enemyGroup);
+		this.lastLayer.add(this.text);
+		this.lastLayer.add(this.foreground);
 
-		const E1 = 0.05;
-		const E2 = 0.1;
+		const E1 = 0.05; // epsilon for angle comparison
+		const E2 = 0.5; // epsilon for position comparison
 
 		// create callback for shooting
 		player.shootCallback = function(points) {
-			shoot.setPoints(points);
+			shoot.renderShoot(points);
 
 			var x = points[2];
 			var y = points[3];
@@ -103,7 +107,9 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 				}
 			}
 		};
-		player.init(this.mainLayer, this.foreground, this.playground);
+		player.init(this.mainLayer, this.playerGroup, this.foreground, this.playground);
+
+		shoot.init(this.shootGroup);
 
 		// create callback for enemy attack
 		var attackCallback = function(x, y) {
@@ -114,10 +120,10 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 		};
 		this.enemyFactory.init(this.mainLayer, this.enemyGroup, attackCallback);
 
-		// bind second layer
-		this.mainLayer.add(this.enemyGroup);
-		this.mainLayer.add(this.shoot);
-		this.mainLayer.add(this.foreground);
+		// add layers to the stage
+		this.stage.add(this.firstLayer);
+		this.stage.add(this.mainLayer);
+		this.stage.add(this.lastLayer);
 	};
 
 	/**
@@ -127,7 +133,7 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 	Game.prototype.addEnemies = function(number) {
 		var player = this.player;
 		for (var i = 0; i < number; i++) {
-			var enemy = enemyFactory.newEnemy();
+			var enemy = this.enemyFactory.newEnemy();
 			enemy.id = this.enemies.length;
 			this.enemies.push(enemy);
 			setInterval((function() {
@@ -144,14 +150,10 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 	Game.prototype.resizePlayground = function(width, height) {
 		this.stage.setWidth(width);
 		this.stage.setHeight(height);
-		this.mainLayer.setWidth(width);
-		this.mainLayer.setHeight(height);
 		this.background.setWidth(width);
 		this.background.setHeight(height);
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
-		this.enemyGroup.setWidth(width);
-		this.enemyGroup.setHeight(height);
 	};
 
 	/**
@@ -192,5 +194,5 @@ define(["player","enemyFactory"], function(player, enemyFactory) {
 		}
 	};
 
-	return new Game();
+	return Game;
 });
