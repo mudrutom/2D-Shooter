@@ -68,7 +68,7 @@ define(function() {
 			y: 0,
 			offset: [0,15],
 			radius: 12,
-			fill: 'red',
+			fill: '#da4f49',
 			opacity: 0.0
 		});
 
@@ -177,7 +177,7 @@ define(function() {
 		// create death animation tween
 		this.deathTween = new Kinetic.Tween({
 			node: this.blood,
-			opacity: 0.6,
+			opacity: 0.7,
 			radius: 20,
 			duration: 2,
 			easing: Kinetic.Easings.EaseOut

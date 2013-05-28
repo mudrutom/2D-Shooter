@@ -55,7 +55,7 @@ define(function() {
 			y: 0,
 			offset: [-10,15],
 			radius: 15,
-			fill: 'red',
+			fill: '#da4f49',
 			opacity: 0.0
 		});
 
@@ -231,7 +231,7 @@ define(function() {
 		// create damage animation tween
 		this.damageTween = new Kinetic.Tween({
 			node: this.blood,
-			opacity: 0.5,
+			opacity: 0.6,
 			duration: 0.5,
 			easing: Kinetic.Easings.StrongEaseOut,
 			onFinish: function() {
@@ -262,7 +262,7 @@ define(function() {
 		// create death animation tween
 		this.deathTween = new Kinetic.Tween({
 			node: this.blood,
-			opacity: 0.6,
+			opacity: 0.8,
 			radius: 30,
 			duration: 2,
 			easing: Kinetic.Easings.EaseOut
@@ -315,7 +315,9 @@ define(function() {
 	 * Starts 'damage' animation.
 	 */
 	Player.prototype.showDamage = function() {
-		this.damageTween.play();
+		if (this.damageTween != null) {
+			this.damageTween.play();
+		}
 	};
 
 	/**
