@@ -36,13 +36,10 @@ define(function() {
 
 	/** The Player object. */
 	function Player() {
-		var self = this;
-
 		var img = new Image();
-		img.onload = function() {
-			self.sprite.start();
-		};
 		img.src = 'img/game/player-sprite.png';
+
+		this.foreground = null;
 
 		this.sprite = new Kinetic.Sprite({
 			x: 0,
@@ -53,7 +50,7 @@ define(function() {
 			animations: playerAnimation,
 			frameRate: 12
 		});
-		this.circle = new Kinetic.Circle({
+		this.blood = new Kinetic.Circle({
 			x: 0,
 			y: 0,
 			offset: [-10,15],
@@ -61,13 +58,17 @@ define(function() {
 			fill: 'red',
 			opacity: 0.0
 		});
-		this.tween = null;
+
+		this.damageTween = null;
+		this.deathTween = null;
 
 		this.speed = 4;
-
 		this.moveAnim = null;
 
 		this.shootCallback = null;
+
+		this.paused = false;
+		this.disabled = true;
 	}
 
 	/**
@@ -78,25 +79,158 @@ define(function() {
 	 * @param playground object used for binding key-events
 	 */
 	Player.prototype.init = function(playerLayer, playerGroup, foreground, playground) {
+		var self = this;
 		var player = this.sprite;
-		var circ = this.circle;
-		var shootCallback = this.shootCallback;
+		var blood = this.blood;
 		var width = function() { return foreground.getWidth(); };
 		var height = function() { return foreground.getHeight(); };
 
-		// move player to the center
-		player.setX(width()/2);
-		player.setY(height()/2);
-		circ.setX(width()/2);
-		circ.setY(height()/2);
+		this.foreground = foreground;
 
 		// add player to the layer
 		playerGroup.add(player);
-		playerGroup.add(circ);
+		playerGroup.add(blood);
 
-		// add damage animation tween
-		this.tween = new Kinetic.Tween({
-			node: circ,
+		// bind mouse-move to rotate the player
+		foreground.on('mousemove', function(event) {
+			if (!self.paused && !self.disabled) {
+				var x = event.layerX || event.x || event.clientX;
+				var y = event.layerY || event.y || event.clientY;
+				var angle = Math.atan((y - player.getY()) / (x - player.getX()));
+				player.setRotation(angle);
+				blood.setRotation(angle);
+				if (x >= player.getX()) {
+					player.rotateDeg(-90);
+					blood.rotateDeg(-90);
+				} else {
+					player.rotateDeg(90);
+					blood.rotateDeg(90);
+				}
+			}
+		});
+
+		// bind mouse-click to shooting
+		foreground.on('click', function(event) {
+			if (!self.paused && !self.disabled) {
+				var x = event.layerX || event.x || event.clientX;
+				var y = event.layerY || event.y || event.clientY;
+				if (self.shootCallback) {
+					var points = [ player.getX(), player.getY(), x, y ];
+					self.shootCallback(points);
+				}
+			}
+		});
+
+		// bind key-press to move the player
+		var moving = [];
+		var isMoving = function() { return moving['up'] || moving['down'] || moving['left'] || moving['right']; };
+		playground.on('keydown', function(event) {
+			if (!self.paused && !self.disabled) {
+				// handle key-down events
+				var wasMoving = isMoving();
+				switch (event.which) {
+					case 87: // W
+						moving['up'] = true;
+						break;
+					case 83: // S
+						moving['down'] = true;
+						break;
+					case 65: // A
+						moving['left'] = true;
+						break;
+					case 68: // D
+						moving['right'] = true;
+						break;
+				}
+				if (!wasMoving && isMoving()) {
+					player.setAnimation('walk');
+				}
+			}
+		});
+		playground.on('keyup', function(event) {
+			if (!self.paused && !self.disabled) {
+				// handle key-uo events
+				var wasMoving = isMoving();
+				switch (event.which) {
+					case 87: // W
+						delete moving['up'];
+						break;
+					case 83: // S
+						delete moving['down'];
+						break;
+					case 65: // A
+						delete moving['left'];
+						break;
+					case 68: // D
+						delete moving['right'];
+						break;
+				}
+				if (wasMoving && !isMoving()) {
+					player.setAnimation('stand');
+				}
+			}
+		});
+		this.moveAnim = new Kinetic.Animation(function() {
+			// moving the Player
+			var dx, dy, move = self.speed;
+			if (moving['up'] && 0 < player.getY()) {
+				dy = Math.max(-move, -player.getY());
+				player.move(0, dy);
+				blood.move(0, dy);
+			}
+			if (moving['down'] && player.getY() < height()) {
+				dy = Math.min(move, height() - player.getY());
+				player.move(0, dy);
+				blood.move(0, dy);
+			}
+			if (moving['left'] && 0 < player.getX()) {
+				dx = Math.max(-move, -player.getX());
+				player.move(dx, 0);
+				blood.move(dx, 0);
+			}
+			if (moving['right'] && player.getX() < width()) {
+				dx = Math.min(move, width() - player.getX());
+				player.move(dx, 0);
+				blood.move(dx, 0);
+			}
+		}, playerLayer);
+	};
+
+	/**
+	 * Set-up the Player for the beginning of the game.
+	 */
+	Player.prototype.gameBegin = function() {
+		var width = this.foreground.getWidth();
+		var height = this.foreground.getHeight();
+
+		this.paused = false;
+		this.disabled = false;
+		this.sprite.start();
+		this.sprite.show();
+
+		this.blood.setRadius(15);
+		this.blood.setOpacity(0.0);
+
+		// move player to the center
+		this.sprite.setX(width/2);
+		this.sprite.setY(height/2);
+		this.blood.setX(width/2);
+		this.blood.setY(height/2);
+
+		if (this.moveAnim != null) {
+			this.moveAnim.start();
+		}
+		if (this.damageTween != null) {
+			this.damageTween.destroy();
+		}
+		if (this.deathTween != null) {
+			this.deathTween.destroy();
+			this.deathTween = null;
+		}
+
+		// create damage animation tween
+		this.damageTween = new Kinetic.Tween({
+			node: this.blood,
 			opacity: 0.5,
 			duration: 0.5,
 			easing: Kinetic.Easings.StrongEaseOut,
@@ -104,120 +238,58 @@ define(function() {
 				this.reverse();
 			}
 		});
-
-		// bind mouse-move to rotate the player
-		foreground.on('mousemove', function(event) {
-			var x = event.layerX || event.x || event.clientX;
-			var y = event.layerY || event.y || event.clientY;
-			var angle = Math.atan((y - player.getY()) / (x - player.getX()));
-			player.setRotation(angle);
-			circ.setRotation(angle);
-			if (x >= player.getX()) {
-				player.rotateDeg(-90);
-				circ.rotateDeg(-90);
-			} else {
-				player.rotateDeg(90);
-				circ.rotateDeg(90);
-			}
-		});
-
-		// bind mouse-click to shooting
-		foreground.on('click', function(event) {
-			var x = event.layerX || event.x || event.clientX;
-			var y = event.layerY || event.y || event.clientY;
-			if (shootCallback) {
-				var points = [ player.getX(), player.getY(), x, y ];
-				shootCallback(points);
-			}
-		});
-
-		// bind key-press to move the player
-		var moving = [];
-		var isMoving = function() { return moving['up'] || moving['down'] || moving['left'] || moving['right']; };
-		var speed = (function() { return this.speed; }).bind(this);
-		playground.on('keydown', function(event) {
-			// handle key-down events
-			var wasMoving = isMoving();
-			switch (event.which) {
-				case 87: // W
-					moving['up'] = true;
-					break;
-				case 83: // S
-					moving['down'] = true;
-					break;
-				case 65: // A
-					moving['left'] = true;
-					break;
-				case 68: // D
-					moving['right'] = true;
-					break;
-			}
-			if (!wasMoving && isMoving()) {
-				player.setAnimation('walk');
-			}
-		});
-		playground.on('keyup', function(event) {
-			// handle key-uo events
-			var wasMoving = isMoving();
-			switch (event.which) {
-				case 87: // W
-					delete moving['up'];
-					break;
-				case 83: // S
-					delete moving['down'];
-					break;
-				case 65: // A
-					delete moving['left'];
-					break;
-				case 68: // D
-					delete moving['right'];
-					break;
-			}
-			if (wasMoving && !isMoving()) {
-				player.setAnimation('stand');
-			}
-		});
-		this.moveAnim = new Kinetic.Animation(function() {
-			// moving the Player
-			var dx, dy, move = speed();
-			if (moving['up'] && 0 < player.getY()) {
-				dy = Math.max(-move, -player.getY());
-				player.move(0, dy);
-				circ.move(0, dy);
-			}
-			if (moving['down'] && player.getY() < height()) {
-				dy = Math.min(move, height() - player.getY());
-				player.move(0, dy);
-				circ.move(0, dy);
-			}
-			if (moving['left'] && 0 < player.getX()) {
-				dx = Math.max(-move, -player.getX());
-				player.move(dx, 0);
-				circ.move(dx, 0);
-			}
-			if (moving['right'] && player.getX() < width()) {
-				dx = Math.min(move, width() - player.getX());
-				player.move(dx, 0);
-				circ.move(dx, 0);
-			}
-		}, playerLayer);
-		this.moveAnim.start();
 	};
 
 	/**
-	 * Starts the PLayers' animation.
+	 * Starts Players' 'death' animation for the game-over.
+	 */
+	Player.prototype.gameOver = function() {
+		this.disabled = true;
+		this.sprite.stop();
+		this.sprite.hide();
+
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
+		if (this.damageTween != null) {
+			this.damageTween.destroy();
+			this.damageTween = null;
+		}
+		if (this.deathTween != null) {
+			this.deathTween.destroy();
+		}
+
+		// create death animation tween
+		this.deathTween = new Kinetic.Tween({
+			node: this.blood,
+			opacity: 0.6,
+			radius: 30,
+			duration: 2,
+			easing: Kinetic.Easings.EaseOut
+		});
+		this.deathTween.play();
+	};
+
+	/**
+	 * Starts the Players' animation.
 	 */
 	Player.prototype.start = function() {
+		this.paused = false;
 		this.sprite.start();
-		this.moveAnim.start();
+		if (this.moveAnim != null) {
+			this.moveAnim.start();
+		}
 	};
 
 	/**
 	 * Stops the Players' animation.
 	 */
 	Player.prototype.stop = function() {
+		this.paused = true;
 		this.sprite.stop();
-		this.moveAnim.stop();
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
 	};
 
 	/**
@@ -243,7 +315,25 @@ define(function() {
 	 * Starts 'damage' animation.
 	 */
 	Player.prototype.showDamage = function() {
-		this.tween.play();
+		this.damageTween.play();
+	};
+
+	/**
+	 * Destroys and removes the Player instance.
+	 */
+	Player.prototype.destroy = function() {
+		this.disabled = true;
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
+		if (this.damageTween != null) {
+			this.damageTween.destroy();
+		}
+		if (this.deathTween != null) {
+			this.deathTween.destroy();
+		}
+		this.sprite.destroy();
+		this.blood.destroy();
 	};
 
 	return Player;

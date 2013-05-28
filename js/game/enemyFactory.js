@@ -10,6 +10,7 @@ define(["enemy"], function(Enemy) {
 	function EnemyFactory() {
 		this.enemyLayer = null;
 		this.enemyGroup = null;
+		this.foreground = null;
 		this.attackCallback = null;
 	}
 
@@ -17,11 +18,13 @@ define(["enemy"], function(Enemy) {
 	 * The Enemy-Factory initialization.
 	 * @param enemyLayer KineticJS Layer
 	 * @param enemyGroup KineticJS Group
+	 * @param foreground object used to get dimensions
 	 * @param attackCallback callback for enemy attacks
 	 */
-	EnemyFactory.prototype.init = function(enemyLayer, enemyGroup, attackCallback) {
+	EnemyFactory.prototype.init = function(enemyLayer, enemyGroup, foreground, attackCallback) {
 		this.enemyLayer = enemyLayer;
 		this.enemyGroup = enemyGroup;
+		this.foreground = foreground;
 		this.attackCallback = attackCallback;
 	};
 
@@ -30,8 +33,8 @@ define(["enemy"], function(Enemy) {
 	 * @returns Enemy new Enemy
 	 */
 	EnemyFactory.prototype.newEnemy = function() {
-		var x = Math.random() * this.enemyLayer.getWidth();
-		var y = Math.random() * this.enemyLayer.getHeight();
+		var x = Math.random() * this.foreground.getWidth();
+		var y = Math.random() * this.foreground.getHeight();
 
 		var enemy = new Enemy();
 		enemy.init(this.enemyLayer, this.enemyGroup);

@@ -50,6 +50,10 @@ define(function() {
 
 	/** The Enemy object. */
 	function Enemy() {
+		this.id = null;
+
+		this.enemyLayer = null;
+
 		this.sprite = new Kinetic.Sprite({
 			x: 0,
 			y: 0,
@@ -59,7 +63,7 @@ define(function() {
 			animations: enemyAnimation,
 			frameRate: 8
 		});
-		this.circle = new Kinetic.Circle({
+		this.blood = new Kinetic.Circle({
 			x: 0,
 			y: 0,
 			offset: [0,15],
@@ -67,19 +71,18 @@ define(function() {
 			fill: 'red',
 			opacity: 0.0
 		});
-		this.tween = null;
 
-		this.id = null;
+		this.damageTween = null;
+		this.deathTween = null;
 
 		this.speed = 2;
-
-		this.enemyLayer = null;
-		this.enemyGroup = null;
 		this.moveAnim = null;
-		this.paused = false;
 
 		this.attackCallback = null;
 		this.attackIntId = null;
+
+		this.paused = false;
+		this.disabled = false;
 	}
 
 	/**
@@ -90,14 +93,13 @@ define(function() {
 	Enemy.prototype.init = function(enemyLayer, enemyGroup) {
 		// app enemy to the layer
 		enemyGroup.add(this.sprite);
-		enemyGroup.add(this.circle);
+		enemyGroup.add(this.blood);
 		this.sprite.start();
 		this.enemyLayer = enemyLayer;
-		this.enemyGroup = enemyGroup;
 
 		// add damage animation tween
-		this.tween = new Kinetic.Tween({
-			node: this.circle,
+		this.damageTween = new Kinetic.Tween({
+			node: this.blood,
 			opacity: 0.5,
 			duration: 0.5,
 			easing: Kinetic.Easings.StrongEaseOut,
@@ -113,7 +115,9 @@ define(function() {
 	Enemy.prototype.start = function() {
 		this.paused = false;
 		this.sprite.start();
-		this.moveAnim.start();
+		if (this.moveAnim != null) {
+			this.moveAnim.start();
+		}
 	};
 
 	/**
@@ -122,7 +126,9 @@ define(function() {
 	Enemy.prototype.stop = function() {
 		this.paused = true;
 		this.sprite.stop();
-		this.moveAnim.stop();
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
 	};
 
 	/**
@@ -142,9 +148,9 @@ define(function() {
 	 */
 	Enemy.prototype.setPosition = function(position) {
 		this.sprite.setX(position.x);
-		this.circle.setX(position.x);
+		this.blood.setX(position.x);
 		this.sprite.setY(position.y);
-		this.circle.setY(position.y);
+		this.blood.setY(position.y);
 	};
 
 	/**
@@ -159,17 +165,41 @@ define(function() {
 	 * Starts 'damage' animation.
 	 */
 	Enemy.prototype.showDamage = function() {
-		this.tween.play();
+		this.damageTween.play();
 	};
 
 	/**
-	 * The enemy will move towards given target.
+	 * Starts 'death' animation.
+	 */
+	Enemy.prototype.showDeath = function() {
+		this.disabled = true;
+
+		// create death animation tween
+		this.deathTween = new Kinetic.Tween({
+			node: this.blood,
+			opacity: 0.6,
+			radius: 20,
+			duration: 2,
+			easing: Kinetic.Easings.EaseOut
+		});
+		this.deathTween.play();
+
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
+		this.sprite.stop();
+		this.sprite.hide();
+	};
+
+	/**
+	 * The enemy will move towards given target then
+	 * it will attack when the target is reached.
 	 * @param target X Y coordinates
 	 */
 	Enemy.prototype.goTo = function(target) {
 		var self = this;
 		var enemy = this.sprite;
-		var circ = this.circle;
+		var blood = this.blood;
 		var x = target.x;
 		var y = target.y;
 
@@ -181,8 +211,8 @@ define(function() {
 			return;
 		}
 
-		// do nothing if the game is paused
-		if (this.paused) {
+		// do nothing if the game is paused of the enemy is disabled
+		if (this.paused || this.disabled) {
 			return;
 		}
 
@@ -200,45 +230,44 @@ define(function() {
 		// rotate towards the target
 		var angle = Math.atan((y - enemy.getY()) / (x - enemy.getX()));
 		enemy.setRotation(angle);
-		circ.setRotation(angle);
+		blood.setRotation(angle);
 		if (x >= enemy.getX()) {
 			enemy.rotateDeg(-90);
-			circ.rotateDeg(-90);
+			blood.rotateDeg(-90);
 		} else {
 			enemy.rotateDeg(90);
-			circ.rotateDeg(90);
+			blood.rotateDeg(90);
 		}
 
-		// start moving, then attack when target is reached
-		var speed = (function() { return this.speed; }).bind(this);
+		// start moving, then attack when the target is reached
 		this.moveAnim = new Kinetic.Animation(function() {
-			var dx, dy, move = speed();
+			var dx, dy, move = self.speed;
 			if (x < enemy.getX()) {
 				dx = Math.max(-move, x - enemy.getX());
 				enemy.move(dx, 0);
-				circ.move(dx, 0);
+				blood.move(dx, 0);
 			}
 			if (enemy.getX() < x) {
 				dx = Math.min(move, x - enemy.getX());
 				enemy.move(dx, 0);
-				circ.move(dx, 0);
+				blood.move(dx, 0);
 			}
 			if (y < enemy.getY()) {
 				dy = Math.max(-move, y - enemy.getY());
 				enemy.move(0, dy);
-				circ.move(0, dy);
+				blood.move(0, dy);
 			}
 			if (enemy.getY() < y) {
 				dy = Math.min(move, y - enemy.getY());
 				enemy.move(0, dy);
-				circ.move(0, dy);
+				blood.move(0, dy);
 			}
 			if (x == enemy.getX() && y == enemy.getY()) {
 				enemy.setAnimation('attack');
 				self.moveAnim.stop();
 				if (self.attackCallback) {
 					// attack in intervals based on speed
-					var time = 200 + 2000 / speed();
+					var time = 200 + 2000 / self.speed;
 					var attack = function() {
 						if (!self.paused) {
 							self.attackCallback(x, y);
@@ -250,6 +279,24 @@ define(function() {
 			}
 		}, this.enemyLayer);
 		this.moveAnim.start();
+	};
+
+	/**
+	 * Destroys and removes this Enemy instance.
+	 */
+	Enemy.prototype.destroy = function() {
+		this.disabled = true;
+		if (this.moveAnim != null) {
+			this.moveAnim.stop();
+		}
+		if (this.damageTween != null) {
+			this.damageTween.destroy();
+		}
+		if (this.deathTween != null) {
+			this.deathTween.destroy();
+		}
+		this.sprite.destroy();
+		this.blood.destroy();
 	};
 
 	return Enemy;

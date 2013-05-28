@@ -10,9 +10,13 @@ require.config({
 require(["game"], function(Game) {
 	var game = new Game();
 	game.init();
-	game.addEnemies(2);
 	game.playground.attr('tabIndex', 0);
 	game.playground.focus();
+	game.gameOverCallback = function() {
+		game.pause();
+		$('#dialog-message').text("GAME OVER: You've died!");
+		$('#dialog').modal('show');
+	};
 
 	var W = $(window);
 	var getWidth = function() { return W.width() - 10; };
@@ -26,6 +30,9 @@ require(["game"], function(Game) {
 		game.playground.focus();
 	});
 
+	$('#game-begin').on('click', function() {
+		game.beginNewGame();
+	});
 	$('#game-play').on('click', function() {
 		game.play();
 	});
@@ -33,7 +40,7 @@ require(["game"], function(Game) {
 		game.pause();
 	});
 
-	$('#settings').on('hide', function() {
+	$('#dialog, #settings').on('hidden', function() {
 		game.playground.focus();
 	});
 	$('#settings-save').on('click', function() {
@@ -41,7 +48,7 @@ require(["game"], function(Game) {
 		game.setPlayerSpeed(playerSpeed);
 		var enemySpeed = $('#enemy-speed').val();
 		game.setEnemySpeed(enemySpeed);
-
-		$('#settings').modal('hide');
 	});
+
+	$('#dialog').modal('show');
 });
