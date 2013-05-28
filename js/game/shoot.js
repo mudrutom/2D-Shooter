@@ -22,13 +22,16 @@ define(function() {
 				opacity: 0.0
 			});
 		}
+
+		this.foreground = null;
 	}
 
 	/**
 	 * The Shoots initialization.
 	 * @param shootGroup KineticJS Group
+	 * @param foreground object used to get dimensions
 	 */
-	Shoot.prototype.init = function(shootGroup) {
+	Shoot.prototype.init = function(shootGroup, foreground) {
 		for (var i = 0; i < num; i++) {
 			shootGroup.add(this.shoots[i]);
 
@@ -43,6 +46,8 @@ define(function() {
 				}
 			});
 		}
+
+		this.foreground = foreground;
 	};
 
 	var currentShoot = 0;
@@ -66,6 +71,21 @@ define(function() {
 	 * @param points array of shoot-points
 	 */
 	Shoot.prototype.renderShoot = function(points) {
+		var pX = points[0], pY = points[1];
+		var sX = points[2], sY = points[3];
+		var dx = pX - sX, dy = pY - sY;
+
+		// compute boundary point
+		var x, y;
+		if (Math.abs(dx) > Math.abs(dy)) {
+			x = (dx > 0) ? -1 : this.foreground.getWidth() + 1;
+			y = dy / dx * (x - pX) + pY;
+		} else {
+			y = (dy > 0) ? -1 : this.foreground.getHeight() + 1;
+			x = dx / dy * (y - pY) + pX;
+		}
+		points.push(x, y);
+
 		var next = this.nextShoot();
 		next.shoot.setPoints(points);
 		next.tween.play();

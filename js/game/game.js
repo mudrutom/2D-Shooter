@@ -109,7 +109,7 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		};
 		player.init(this.mainLayer, this.playerGroup, this.foreground, this.playground);
 
-		shoot.init(this.shootGroup);
+		shoot.init(this.shootGroup, this.foreground);
 
 		// create callback for enemy attack
 		var attackCallback = function(x, y) {
@@ -154,6 +154,7 @@ define(["player","shoot","enemyFactory"], function(Player, Shoot, EnemyFactory) 
 		this.background.setHeight(height);
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
+		this.stage.draw();
 	};
 
 	/**
