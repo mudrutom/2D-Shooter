@@ -203,8 +203,10 @@ define(function() {
 		var x = target.x;
 		var y = target.y;
 
+		const E = 5.0; // epsilon for position comparison
+
 		// already at the target
-		if (x == enemy.getX() && y == enemy.getY()) {
+		if (x - E < enemy.getX() && enemy.getX() < x + E && y - E < enemy.getY() && enemy.getY() < y + E) {
 			if (enemy.getAnimation() != 'attack') {
 				enemy.setAnimation('attack');
 			}
@@ -262,7 +264,7 @@ define(function() {
 				enemy.move(0, dy);
 				blood.move(0, dy);
 			}
-			if (x == enemy.getX() && y == enemy.getY()) {
+			if (x - E < enemy.getX() && enemy.getX() < x + E && y - E < enemy.getY() && enemy.getY() < y + E) {
 				enemy.setAnimation('attack');
 				self.moveAnim.stop();
 				if (self.attackCallback) {

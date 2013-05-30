@@ -11,7 +11,7 @@ define(["enemy"], function(Enemy) {
 	const generateNumber = 5;
 	const speedMultiplier = 1.0;
 	const healthMultiplier = 3.0;
-	const goToInterval = 2000;
+	const goToIntLength = 10;
 	const killThreshold = 30;
 
 	/** The Enemy-Generator object. */
@@ -24,13 +24,16 @@ define(["enemy"], function(Enemy) {
 		this.goToCallback = null;
 
 		this.enemies = [];
-		this.enemiesHP = [];
-		this.enemyIntIds = [];
+		this.enemiesData = [];
 
 		this.difficulty = 1;
 		this.killCount = 0;
 
-		this.generateIntId = null;
+		this.cleanerQueue = [];
+
+		this.generatorIntId = null;
+		this.enemyGoToIntId = null;
+		this.cleanerIntId = null;
 	}
 
 	/**
@@ -55,17 +58,25 @@ define(["enemy"], function(Enemy) {
 	EnemyGenerator.prototype.clean = function() {
 		for (var i = 0; i < this.enemies.length; i++) {
 			this.enemies[i].destroy();
-			clearInterval(this.enemyIntIds[i]);
 		}
 		this.enemies = [];
-		this.enemiesHP = [];
-		this.enemyIntIds = [];
+		this.enemiesData = [];
 
 		this.killCount = 0;
 
-		if (this.generateIntId != null) {
-			clearInterval(this.generateIntId);
-			this.generateIntId = null;
+		this.cleanerQueue = [];
+
+		if (this.generatorIntId != null) {
+			clearInterval(this.generatorIntId);
+			this.generatorIntId = null;
+		}
+		if (this.enemyGoToIntId != null) {
+			clearInterval(this.enemyGoToIntId);
+			this.enemyGoToIntId = null;
+		}
+		if (this.cleanerIntId != null) {
+			clearInterval(this.cleanerIntId);
+			this.cleanerIntId = null;
 		}
 	};
 
@@ -73,25 +84,58 @@ define(["enemy"], function(Enemy) {
 	 * Starts generating new enemies and starts all enemies.
 	 */
 	EnemyGenerator.prototype.start = function() {
-		var generator = this;
-		var newEnemies = function() {
-			generator.newEnemies(generateNumber);
-		};
-		this.generateIntId = setInterval(newEnemies, generateInterval);
+		var self = this;
 
+		// set-up enemy-generator interval
+		this.generatorIntId = setInterval(function() {
+			self.newEnemies(generateNumber);
+		}, generateInterval);
+
+		// set-up enemy-go-to interval
+		var data = this.enemiesData;
+		this.enemyGoToIntId = setInterval(function() {
+			for (var i = 0; i < data.length; i++) {
+				if (data[i].timeout-- <= 0) {
+					data[i].timeout = data[i].intLength;
+					self.goToCallback.call(self.enemies[i]);
+				}
+			}
+		}, 300);
+
+		// set-up cleaner interval
+		var queue = this.cleanerQueue;
+		this.cleanerIntId = setInterval(function() {
+			for (var i = 0; i < queue.length; i++) {
+				if (queue[i].timeout-- <= 0) {
+					queue[i].enemy.destroy();
+					queue.splice(i, 1);
+					i--;
+				}
+			}
+		}, 500);
+
+		// start-up enemies
 		for (var i = 0; i < this.enemies.length; i++) {
 			this.enemies[i].start();
 		}
-		newEnemies();
+		this.newEnemies(generateNumber);
 	};
 
 	/**
 	 * Stops generating new enemies and stops all enemies.
 	 */
 	EnemyGenerator.prototype.stop = function() {
-		if (this.generateIntId != null) {
-			clearInterval(this.generateIntId);
-			this.generateIntId = null;
+		if (this.generatorIntId != null) {
+			clearInterval(this.generatorIntId);
+			this.generatorIntId = null;
+		}
+		if (this.enemyGoToIntId != null) {
+			clearInterval(this.enemyGoToIntId);
+			this.enemyGoToIntId = null;
+		}
+		if (this.cleanerIntId != null) {
+			clearInterval(this.cleanerIntId);
+			this.cleanerIntId = null;
 		}
 
 		for (var i = 0; i < this.enemies.length; i++) {
@@ -105,18 +149,18 @@ define(["enemy"], function(Enemy) {
 	 */
 	EnemyGenerator.prototype.handleEnemyHit = function(id) {
 		this.enemies[id].showDamage();
-		if (--this.enemiesHP[id] < 1) {
+		if (--this.enemiesData[id].HP < 1) {
 			// the enemy was killed
 			this.enemies[id].showDeath();
-			clearInterval(this.enemyIntIds[id]);
 
-			setTimeout((function() {
-				this.destroy();
-			}).bind(this.enemies[id]), 3000);
+			// schedule clean-up of the enemy
+			this.cleanerQueue.push({
+				enemy: this.enemies[id],
+				timeout: 6
+			});
 
 			this.enemies.splice(id, 1);
-			this.enemiesHP.splice(id, 1);
-			this.enemyIntIds.splice(id, 1);
+			this.enemiesData.splice(id, 1);
 
 			if (++this.killCount % killThreshold == 0) {
 				this.incrementDifficulty();
@@ -173,13 +217,14 @@ define(["enemy"], function(Enemy) {
 		enemy.setPosition({ x: x, y: y });
 		enemy.attackCallback = this.attackCallback;
 
-		// set-up go-to interval
-		var goTo = (this.goToCallback) ? this.goToCallback.bind(enemy) : null;
-		var intId = setInterval(goTo, goToInterval / this.difficulty + Math.random() * 200);
+		var metadata = {
+			HP: this.difficulty * healthMultiplier,
+			timeout: goToIntLength / this.difficulty,
+			intLength: goToIntLength / this.difficulty
+		};
 
 		this.enemies.push(enemy);
-		this.enemiesHP.push(this.difficulty * healthMultiplier);
-		this.enemyIntIds.push(intId);
+		this.enemiesData.push(metadata);
 
 		return enemy;
 	};
