@@ -7,14 +7,37 @@ require.config({
 	baseUrl: "js/game"
 });
 
-require(["game"], function(Game) {
+require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
+	var builder = new HTMLBuilder();
+
+	var users = new Users();
+	users.init();
+
+	$('#users, #users a[href="#all-users"]').on('shown', function() {
+		var tab = builder.buildUsersTable(users.getAllUsers());
+		$('#all-users').find('div.content').empty().append(tab);
+	});
+
+	$('#users').find('a[href="#new-user"]').on('shown', function() {
+		$('#new-user-name').val('');
+		$('#new-user').find('.control-group').removeClass('success').removeClass('error');
+	});
+
+	$('#new-user').find('form').on('submit', function() {
+		var name = $('#new-user-name').val();
+		users.newUser(name);
+		var group = $(this).find('.control-group').addClass('success');
+		setTimeout(function() {
+			group.removeClass('success');
+		}, 2000);
+	});
+
 	var game = new Game();
 	game.init();
-	game.playground.attr('tabIndex', 0);
 	game.playground.focus();
 	game.gameOverCallback = function(result) {
 		$('#dialog-message').text("GAME OVER: You've killed " + result.kills + " enemies!");
-		$('#dialog').modal('show');
+		$('#game-menu').modal('show');
 	};
 
 	var W = $(window);
@@ -28,6 +51,12 @@ require(["game"], function(Game) {
 		event.preventDefault();
 		game.playground.focus();
 	});
+	$('#game-menu, #settings, #users').on('hidden', function() {
+		game.playground.focus();
+	});
+	$('form').on('submit', function(event) {
+		event.preventDefault();
+	});
 
 	$('#game-begin').on('click', function() {
 		game.beginNewGame();
@@ -39,9 +68,6 @@ require(["game"], function(Game) {
 		game.pause();
 	});
 
-	$('#dialog, #settings').on('hidden', function() {
-		game.playground.focus();
-	});
 	$('#settings-save').on('click', function() { // TODO validate integer values /^\d+$/
 		var playerSpeed = $('#player-speed').val();
 		game.setPlayerSpeed(playerSpeed);
@@ -49,5 +75,5 @@ require(["game"], function(Game) {
 		game.setDifficulty(difficulty);
 	});
 
-	$('#dialog').modal('show');
+	$('#game-menu').modal('show');
 });

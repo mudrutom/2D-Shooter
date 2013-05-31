@@ -17,14 +17,15 @@
 </head>
 <body>
 
-<div id="the-navbar" class="navbar navbar-inverse navbar-fixed-top">
+<div id="the-navbar" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 	<div class="navbar-inner">
 		<div class="pull-left">
 			<a class="brand" href="#">2D Shooter</a>
 			<ul class="nav">
 				<li class="divider-vertical"></li>
-				<li><a href="#dialog" data-toggle="modal">Game</a></li>
+				<li><a href="#game-menu" data-toggle="modal">Menu</a></li>
 				<li><a href="#settings" data-toggle="modal">Settings</a></li>
+				<li><a href="#users" data-toggle="modal">Users</a></li>
 			</ul>
 		</div>
 		<div class="pull-right">
@@ -37,11 +38,11 @@
 	</div>
 </div>
 
-<div id="playground"></div>
+<div id="playground" tabindex="0" role="main"></div>
 
-<div id="dialog" class="modal fade" tabindex="-1" role="dialog">
+<div id="game-menu" class="modal hide fade" tabindex="-1" role="dialog">
 	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
+		<button class="close" data-dismiss="modal">&times;</button>
 		<h2>2D Shooter</h2>
 	</div>
 	<div class="modal-body">
@@ -54,29 +55,68 @@
 
 <div id="settings" class="modal hide fade" tabindex="-1" role="dialog">
 	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
+		<button class="close" data-dismiss="modal">&times;</button>
 		<h3>Game settings</h3>
 	</div>
 	<div class="modal-body">
-		<h4>Adjust speeds:</h4>
-		<div class="form-horizontal">
-			<div class="control-group">
-				<label class="control-label" for="player-speed">Player speed</label>
-				<div class="controls">
-					<input id="player-speed" type="number" value="3"/>
+		<form class="form-horizontal">
+			<fieldset>
+				<legend>Adjust speeds:</legend>
+				<div class="control-group">
+					<label class="control-label" for="player-speed">Player speed</label>
+					<div class="controls">
+						<input id="player-speed" type="number" value="3"/>
+					</div>
 				</div>
-			</div>
-			<div class="control-group">
-				<label class="control-label" for="difficulty">Game difficulty</label>
-				<div class="controls">
-					<input id="difficulty" type="number" value="1"/>
+				<div class="control-group">
+					<label class="control-label" for="difficulty">Game difficulty</label>
+					<div class="controls">
+						<input id="difficulty" type="number" value="1"/>
+					</div>
 				</div>
-			</div>
-		</div>
+			</fieldset>
+		</form>
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal">Close</button>
 		<button id="settings-save" class="btn btn-primary" data-dismiss="modal">Save</button>
+	</div>
+</div>
+
+<div id="users" class="modal hide fade" tabindex="-1" role="dialog">
+	<div class="modal-header">
+		<button class="close" data-dismiss="modal">&times;</button>
+		<h2>User management</h2>
+	</div>
+	<div class="modal-body">
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#all-users" data-toggle="tab">All users</a></li>
+			<li><a href="#new-user" data-toggle="tab">New user</a></li>
+		</ul>
+		<div class="tab-content">
+			<div id="all-users" class="tab-pane active">
+				<h4>Overview of all user accounts</h4>
+				<p>You can log-in as any user to play the game and to improve high scores.</p>
+				<div class="content"></div>
+			</div>
+			<div id="new-user" class="tab-pane">
+				<form class="form-horizontal">
+					<fieldset>
+						<legend>Create new user account</legend>
+						<div class="control-group">
+							<label class="control-label" for="new-user-name">Name</label>
+							<div class="controls">
+								<input id="new-user-name" type="text" required pattern="^\S.*\S$|\S" title="username"/>
+								<span class="help-inline hide">new uses was successfully created</span>
+							</div>
+						</div>
+					</fieldset>
+					<div class="form-actions">
+						<input class="btn btn-primary" type="submit" value="Create"/>
+					</div>
+				</form>
+			</div>
+		</div>
 	</div>
 </div>
 

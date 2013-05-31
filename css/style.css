@@ -8,3 +8,35 @@
 	margin: 46px 5px 0;
 	cursor: crosshair;
 }
+
+.modal-body h4 {
+	margin-top: 0;
+	margin-bottom: 20px;
+	border: 0;
+	border-bottom: 1px solid #e5e5e5;
+	font-size: 21px;
+	font-weight: normal;
+	line-height: 40px;
+	color: #333333;
+}
+
+table > thead {
+	font-weight: bold;
+}
+
+table td.action {
+	width: 6em;
+	text-align: center;
+}
+
+.table-empty {
+	padding: 10px 5px;
+	border: 1px solid #dddddd;
+	border-radius: 4px;
+	background-color: #f9f9f9;
+	text-align: center;
+}
+
+#new-user .success span.help-inline {
+	display: inline-block;
+}
