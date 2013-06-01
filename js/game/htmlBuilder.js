@@ -37,7 +37,8 @@ define(function() {
 		for (var i = 0; i < allUsers.length; i++) {
 			var row = this.new('tr');
 			row.attr('data-id', allUsers[i].id);
-			row.append('<td>' + allUsers[i].name + '</td>');
+			row.attr('itemtype', 'http://schema.org/Person');
+			row.append('<td itemprop="name">' + allUsers[i].name + '</td>');
 			var score = allUsers[i].highScore;
 			row.append('<td class="text-right">' + (score ? score.time : '-') + '</td>');
 			row.append('<td class="text-right">' + (score ? score.kills : '-') + '</td>');

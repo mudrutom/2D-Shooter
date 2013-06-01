@@ -18,6 +18,11 @@ define(function() {
 	 * The Users initialization.
 	 */
 	Users.prototype.init = function() {
+		if (!localStorage) {
+			// not-supported
+			return;
+		}
+
 		var users = localStorage.getItem('users');
 		if (users) {
 			users = JSON.parse(users);
@@ -39,6 +44,11 @@ define(function() {
 	 * Persists the Users object into LocalStorage.
 	 */
 	Users.prototype.persist = function() {
+		if (!localStorage) {
+			// not-supported
+			return;
+		}
+
 		var users = [];
 		for (var key in this.allUsers) {
 			if (this.allUsers.hasOwnProperty(key)) {

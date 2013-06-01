@@ -7,7 +7,7 @@
 
 define(function() {
 	// animation frames in the player sprite
-	const playerAnimation = {
+	var playerAnimation = {
 		walk: [
 			{ x:   0, y:   0, width: 120, height: 120 },
 			{ x: 120, y:   0, width: 120, height: 120 },

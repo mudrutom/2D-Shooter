@@ -6,7 +6,7 @@
 
 define(function() {
 	// animation frames in the enemy sprite
-	const enemyAnimation = {
+	var enemyAnimation = {
 		walk: [
 			{ x:   0, y:   0, width: 100, height: 100 },
 			{ x: 100, y:   0, width: 100, height: 100 },
@@ -203,7 +203,7 @@ define(function() {
 		var x = target.x;
 		var y = target.y;
 
-		const E = 5.0; // epsilon for position comparison
+		var E = 5.0; // epsilon for position comparison
 
 		// already at the target
 		if (x - E < enemy.getX() && enemy.getX() < x + E && y - E < enemy.getY() && enemy.getY() < y + E) {

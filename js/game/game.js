@@ -90,8 +90,8 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.mainLayer.add(this.text);
 		this.lastLayer.add(this.foreground);
 
-		const E1 = 0.05; // epsilon for angle comparison
-		const E2 = 5.0; // epsilon for position comparison
+		var E1 = 0.05; // epsilon for angle comparison
+		var E2 = 5.0; // epsilon for position comparison
 
 		// create callback for shooting
 		player.shootCallback = function(points) {

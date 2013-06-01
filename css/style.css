@@ -41,6 +41,10 @@ table td.text-right {
 	text-align: center;
 }
 
+#all-users tr, #new-user label, #new-user input {
+	transition: all 1s;
+}
+
 #new-user .success span.help-inline {
 	display: inline-block;
 }

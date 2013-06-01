@@ -7,12 +7,12 @@
 
 define(["enemy"], function(Enemy) {
 	// Enemy-Generator constants
-	const generateInterval = 5000;
-	const generateNumber = 5;
-	const speedMultiplier = 1.0;
-	const healthMultiplier = 3.0;
-	const goToIntLength = 10;
-	const killThreshold = 30;
+	var generateInterval = 5000;
+	var generateNumber = 5;
+	var speedMultiplier = 1.0;
+	var healthMultiplier = 3.0;
+	var goToIntLength = 10;
+	var killThreshold = 30;
 
 	/** The Enemy-Generator object. */
 	function EnemyGenerator() {

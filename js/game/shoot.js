@@ -6,7 +6,7 @@
 
 define(function() {
 	// the number of shoots to render simultaneously
-	const num = 5;
+	var num = 5;
 
 	/** The Shoots object. */
 	function Shoot() {
