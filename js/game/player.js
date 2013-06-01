@@ -42,8 +42,8 @@ define(function() {
 		this.foreground = null;
 
 		this.sprite = new Kinetic.Sprite({
-			x: 0,
-			y: 0,
+			x: -50,
+			y: -50,
 			offset: [50,50],
 			image: img,
 			animation: 'stand',
@@ -51,8 +51,8 @@ define(function() {
 			frameRate: 12
 		});
 		this.blood = new Kinetic.Circle({
-			x: 0,
-			y: 0,
+			x: -50,
+			y: -50,
 			offset: [-10,15],
 			radius: 15,
 			fill: '#da4f49',

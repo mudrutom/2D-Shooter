@@ -15,15 +15,28 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 
 	$('#users, #users a[href="#all-users"]').on('shown', function() {
 		var tab = builder.buildUsersTable(users.getAllUsers());
-		$('#all-users').find('div.content').empty().append(tab);
+		var content = $('#all-users').find('div.content');
+		content.empty().append(tab);
+		content.find('button').on('click', function(event) {
+			var target = $(event.target);
+			users.login(target.attr('data-id'));
+			game.setUser(users.loggedUser());
+			content.find('tr.info').removeClass('info');
+			target.parents('tr').addClass('info');
+		});
+		var logged = users.loggedUser();
+		if (logged) {
+			content.find('tr[data-id="' + logged.id + '"]').addClass('info');
+		}
 	});
 
 	$('#users').find('a[href="#new-user"]').on('shown', function() {
-		$('#new-user-name').val('');
+		$('#new-user-name').val('').focus();
 		$('#new-user').find('.control-group').removeClass('success').removeClass('error');
 	});
 
-	$('#new-user').find('form').on('submit', function() {
+	$('#new-user').find('form').on('submit', function(event) {
+		event.preventDefault();
 		var name = $('#new-user-name').val();
 		users.newUser(name);
 		var group = $(this).find('.control-group').addClass('success');
@@ -34,9 +47,12 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 
 	var game = new Game();
 	game.init();
+	game.setUser(users.loggedUser());
 	game.playground.focus();
 	game.gameOverCallback = function(result) {
-		$('#dialog-message').text("GAME OVER: You've killed " + result.kills + " enemies!");
+		var time =  Math.round(result.time / 100) / 10;
+		users.updateScore(time, result.kills);
+		$('#dialog-message').text("GAME OVER: You've killed " + result.kills + " enemies, in " + time + "s.");
 		$('#game-menu').modal('show');
 	};
 
@@ -53,9 +69,6 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 	});
 	$('#game-menu, #settings, #users').on('hidden', function() {
 		game.playground.focus();
-	});
-	$('form').on('submit', function(event) {
-		event.preventDefault();
 	});
 
 	$('#game-begin').on('click', function() {

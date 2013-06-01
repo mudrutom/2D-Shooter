@@ -29,7 +29,8 @@ define(function() {
 
 		// make table-head
 		var thead = this.new('thead');
-		thead.append('<tr><td>Name</td><td>High score</td><td></td></tr>');
+		thead.append('<tr><td rowspan="2">Name</td><td colspan="2">High score</td><td rowspan="2"></td></tr>');
+		thead.append('<tr><td class="text-right">Time [s]</td><td class="text-right">Kills</td></tr>');
 
 		// make table-body
 		var tbody = this.new('tbody');
@@ -37,7 +38,9 @@ define(function() {
 			var row = this.new('tr');
 			row.attr('data-id', allUsers[i].id);
 			row.append('<td>' + allUsers[i].name + '</td>');
-			row.append('<td>' + allUsers[i].highScore + '</td>');
+			var score = allUsers[i].highScore;
+			row.append('<td class="text-right">' + (score ? score.time : '-') + '</td>');
+			row.append('<td class="text-right">' + (score ? score.kills : '-') + '</td>');
 			row.append('<td class="action"><button class="btn" data-id="' + allUsers[i].id + '">Log in</button></td>');
 			tbody.append(row);
 		}

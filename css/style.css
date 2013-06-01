@@ -29,6 +29,10 @@ table td.action {
 	text-align: center;
 }
 
+table td.text-right {
+	text-align: right;
+}
+
 .table-empty {
 	padding: 10px 5px;
 	border: 1px solid #dddddd;

@@ -47,12 +47,13 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.text = new Kinetic.Text({
 			x: 10,
 			y: 10,
-			text: 'Player HP: 50',
 			fontSize: 30,
 			fontStyle: 'bold',
 			fill: '#357735',
 			shadowColor: 'gray'
 		});
+
+		this.user = null;
 
 		this.playerGroup = new Kinetic.Group();
 		this.player = new Player();
@@ -64,8 +65,11 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.enemyGroup = new Kinetic.Group();
 		this.enemyGenerator = new EnemyGenerator();
 
+		this.playerSpeed = 4;
 		this.difficulty = 1;
 
+		this.gameTime = null;
+		this.gamePauseTime = null;
 		this.gameOverCallback = null;
 	}
 
@@ -127,7 +131,7 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 				if (--self.playerHP == 0) {
 					self.endGame();
 				}
-				self.text.setText('Player HP: ' + self.playerHP);
+				self.refreshText();
 			}
 		};
 		var goToCallback = function() {
@@ -139,6 +143,10 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.stage.add(this.firstLayer);
 		this.stage.add(this.mainLayer);
 		this.stage.add(this.lastLayer);
+
+		bgImg.onload = function() {
+			self.firstLayer.draw();
+		};
 	};
 
 	/**
@@ -146,14 +154,17 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	 */
 	Game.prototype.beginNewGame = function() {
 		// clean-up before start
-		this.text.setText('Player HP: 50');
+		this.playerHP = 50;
+		this.player.setSpeed(this.playerSpeed);
 		this.enemyGenerator.clean();
 		this.enemyGenerator.setDifficulty(this.difficulty);
+		this.refreshText();
 
 		// start new game
-		this.playerHP = 50;
 		this.player.gameBegin();
 		this.enemyGenerator.start();
+		this.gameTime = new Date().getTime();
+		this.gamePauseTime = null;
 
 		this.foreground.setOpacity(0.0);
 		this.lastLayer.draw();
@@ -167,8 +178,10 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		if (this.gameOverCallback) {
 			var self = this;
 			var result = {
+				user: this.user,
 				speed: this.player.speed,
 				difficulty: this.enemyGenerator.difficulty,
+				time: new Date().getTime() - this.gameTime,
 				kills: this.enemyGenerator.killCount
 			};
 			setTimeout(function() {
@@ -185,6 +198,11 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.player.start();
 		this.enemyGenerator.start();
 
+		if (this.gamePauseTime) {
+			this.gameTime += new Date().getTime() - this.gamePauseTime;
+			this.gamePauseTime = null;
+		}
+
 		this.foreground.setOpacity(0.0);
 		this.lastLayer.draw();
 	};
@@ -196,16 +214,35 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.player.stop();
 		this.enemyGenerator.stop();
 
+		this.gamePauseTime = new Date().getTime();
+
 		this.foreground.setOpacity(0.5);
 		this.lastLayer.draw();
 	};
 
 	/**
+	 * Renders up-to-date text with username and HP.
+	 */
+	Game.prototype.refreshText = function() {
+		var username = (this.user) ? this.user.name : 'Player';
+		this.text.setText(username + ' HP: ' + this.playerHP);
+		this.mainLayer.draw();
+	};
+
+	/**
+	 * Sets current user/player.
+	 * @param user User object
+	 */
+	Game.prototype.setUser = function(user) {
+		this.user = user;
+	};
+
+	/**
 	 * Sets moving speed of the Player.
-	 * @param speed number
+	 * @param speed number > 0
 	 */
 	Game.prototype.setPlayerSpeed = function(speed) {
-		this.player.setSpeed(speed);
+		this.playerSpeed = speed;
 	};
 
 	/**
