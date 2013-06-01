@@ -112,7 +112,7 @@ define(function() {
 	 */
 	Users.prototype.updateScore = function(time, kills) {
 		var score = new Score(time, kills);
-		if (scoreComparator(score, this.currentUser.highScore) < 0) {
+		if (this.currentUser && scoreComparator(score, this.currentUser.highScore) < 0) {
 			this.currentUser.highScore = score;
 			this.persist();
 		}

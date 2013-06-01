@@ -26,6 +26,7 @@
 				<li><a href="#game-menu" data-toggle="modal">Menu</a></li>
 				<li><a href="#settings" data-toggle="modal">Settings</a></li>
 				<li><a href="#users" data-toggle="modal">Users</a></li>
+				<li><a href="#about" data-toggle="modal">About</a></li>
 			</ul>
 		</div>
 		<div class="pull-right">
@@ -43,12 +44,14 @@
 <div id="game-menu" class="modal hide fade" tabindex="-1" role="dialog">
 	<div class="modal-header">
 		<button class="close" data-dismiss="modal">&times;</button>
-		<h2>2D Shooter</h2>
+		<h2>Game menu</h2>
 	</div>
 	<div class="modal-body">
-		<p id="dialog-message">Welcome to the 2D Shooter game!</p>
+		<p id="message-user"></p>
+		<p id="message-score"></p>
 	</div>
 	<div class="modal-footer">
+		<button id="game-end" class="btn" data-dismiss="modal">End current game</button>
 		<button id="game-begin" class="btn btn-primary" data-dismiss="modal">Begin new game</button>
 	</div>
 </div>
@@ -56,26 +59,23 @@
 <div id="settings" class="modal hide fade" tabindex="-1" role="dialog">
 	<div class="modal-header">
 		<button class="close" data-dismiss="modal">&times;</button>
-		<h3>Game settings</h3>
+		<h2>Game settings</h2>
 	</div>
 	<div class="modal-body">
-		<form class="form-horizontal">
-			<fieldset>
-				<legend>Adjust speeds:</legend>
-				<div class="control-group">
-					<label class="control-label" for="player-speed">Player speed</label>
-					<div class="controls">
-						<input id="player-speed" type="number" value="4" required min="1" pattern="^\d+$"/>
-					</div>
+		<div class="form-horizontal">
+			<div class="control-group">
+				<label class="control-label" for="player-speed">Player speed</label>
+				<div class="controls">
+					<input id="player-speed" type="number" value="4" required min="1" pattern="^\d+$"/>
 				</div>
-				<div class="control-group">
-					<label class="control-label" for="difficulty">Game difficulty</label>
-					<div class="controls">
-						<input id="difficulty" type="number" value="1" required min="1" pattern="^\d+$"/>
-					</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="difficulty">Game difficulty</label>
+				<div class="controls">
+					<input id="difficulty" type="number" value="1" required min="1" pattern="^\d+$"/>
 				</div>
-			</fieldset>
-		</form>
+			</div>
+		</div>
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal">Close</button>
@@ -117,6 +117,22 @@
 				</form>
 			</div>
 		</div>
+	</div>
+</div>
+
+<div id="about" class="modal hide fade" tabindex="-1" role="dialog">
+	<div class="modal-header">
+		<button class="close" data-dismiss="modal">&times;</button>
+		<h2>About 2D Shooter game</h2>
+	</div>
+	<div class="modal-body">
+		<p>2D action-shooter game, client-side JavaScript application with HTML5 and CSS3.</p>
+		<p>For more see <a href="https://github.com/mudrutom/2D-Shooter">GitHub repository</a>.</p>
+		<h5>How to play:</h5>
+		<p>
+			Use <code>W</code>,<code>S</code>,<code>A</code>,<code>D</code> keys to move the player
+			and mouse-clicks for shooting. The goal of the game is to survive as long as possible.
+		</p>
 	</div>
 </div>
 
