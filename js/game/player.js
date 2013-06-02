@@ -62,6 +62,8 @@ define(function() {
 		this.damageTween = null;
 		this.deathTween = null;
 
+		this.deathSound = null;
+
 		this.speed = 4;
 		this.moveAnim = null;
 
@@ -90,6 +92,11 @@ define(function() {
 		// add player to the layer
 		playerGroup.add(player);
 		playerGroup.add(blood);
+
+		// load player-scream sound
+		this.deathSound = new Audio();
+		this.deathSound.src = 'audio/player-death-scream.mp3';
+		this.deathSound.load();
 
 		// bind mouse-move to rotate the player
 		foreground.on('mousemove', function(event) {
@@ -268,6 +275,7 @@ define(function() {
 			easing: Kinetic.Easings.EaseOut
 		});
 		this.deathTween.play();
+		this.deathSound.play();
 	};
 
 	/**

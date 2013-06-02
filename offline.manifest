@@ -24,5 +24,8 @@ img/glyphicons-halflings.png
 img/glyphicons-halflings-white.png
 
 img/game/bg-texture.jpg
-img/game/enemy-sprite.jpg
-img/game/player-sprite.jpg
+img/game/enemy-sprite.png
+img/game/player-sprite.png
+
+audio/laser-sound.mp3
+audio/player-death-scream.mp3

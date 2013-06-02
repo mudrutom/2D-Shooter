@@ -12,6 +12,7 @@ define(function() {
 	function Shoot() {
 		this.shoots = new Array(num);
 		this.shootTweens = new Array(num);
+		this.sounds = new Array(num);
 		for (var i = 0; i < num; i++) {
 			this.shoots[i] = new Kinetic.Line({
 				points: [-1,-1, -2,-2],
@@ -45,6 +46,11 @@ define(function() {
 					this.reverse();
 				}
 			});
+
+			// load gun-shoot sound
+			this.sounds[i] = new Audio();
+			this.sounds[i].src = 'audio/laser-sound.mp3';
+			this.sounds[i].load();
 		}
 
 		this.foreground = foreground;
@@ -62,7 +68,8 @@ define(function() {
 		}
 		return {
 			shoot: this.shoots[currentShoot],
-			tween: this.shootTweens[currentShoot++]
+			tween: this.shootTweens[currentShoot],
+			sound: this.sounds[currentShoot++]
 		};
 	};
 
@@ -89,6 +96,7 @@ define(function() {
 		var next = this.nextShoot();
 		next.shoot.setPoints(points);
 		next.tween.play();
+		next.sound.play();
 	};
 
 	return Shoot;
